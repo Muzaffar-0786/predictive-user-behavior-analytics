@@ -1,126 +1,61 @@
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    Integer,
-    String,
-    Text,
-    ForeignKey,
-)
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+from sqlalchemy import Column, Integer, Float, String
 
-from app.database import Base
+from database import Base
 
 
-class User(Base):
-    __tablename__ = "users"
+# ==========================================================
+# User Behavior Analytics Model
+# ==========================================================
 
-    id = Column(Integer, primary_key=True, index=True)
+class UserBehavior(Base):
+    """
+    SQLAlchemy ORM model for storing user behavior
+    analytics and churn prediction results.
+    """
 
-    full_name = Column(String(100), nullable=False)
-
-    email = Column(String(255), unique=True, index=True, nullable=False)
-
-    username = Column(String(50), unique=True, index=True, nullable=False)
-
-    hashed_password = Column(String(255), nullable=False)
-
-    is_active = Column(Boolean, default=True)
-
-    is_admin = Column(Boolean, default=False)
-
-    created_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-    )
-
-    updated_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
-    )
-
-    videos = relationship(
-        "Video",
-        back_populates="owner",
-        cascade="all, delete",
-    )
-
-    watch_history = relationship(
-        "WatchHistory",
-        back_populates="user",
-        cascade="all, delete",
-    )
+    __tablename__ = "user_behavior_analytics"
 
 
-class Video(Base):
-    __tablename__ = "videos"
-
-    id = Column(Integer, primary_key=True, index=True)
-
-    title = Column(String(255), nullable=False)
-
-    description = Column(Text)
-
-    video_url = Column(String(500), nullable=False)
-
-    thumbnail_url = Column(String(500))
-
-    category = Column(String(100))
-
-    views = Column(Integer, default=0)
-
-    likes = Column(Integer, default=0)
-
-    owner_id = Column(
+    # Primary Identifier
+    id = Column(
         Integer,
-        ForeignKey("users.id", ondelete="CASCADE"),
-    )
-
-    created_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-    )
-
-    owner = relationship(
-        "User",
-        back_populates="videos",
-    )
-
-    history = relationship(
-        "WatchHistory",
-        back_populates="video",
-        cascade="all, delete",
+        primary_key=True,
+        index=True
     )
 
 
-class WatchHistory(Base):
-    __tablename__ = "watch_history"
-
-    id = Column(Integer, primary_key=True, index=True)
-
+    # User Information
     user_id = Column(
+        String,
+        index=True,
+        nullable=False
+    )
+
+
+    # User Activity Metrics
+    days_active = Column(
         Integer,
-        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False
     )
 
-    video_id = Column(
+    monthly_charges = Column(
+        Float,
+        nullable=False
+    )
+
+    support_calls = Column(
         Integer,
-        ForeignKey("videos.id", ondelete="CASCADE"),
+        nullable=False
     )
 
-    watched_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
+
+    # Analytics Output
+    churn_risk = Column(
+        String,
+        nullable=False
     )
 
-    user = relationship(
-        "User",
-        back_populates="watch_history",
-    )
-
-    video = relationship(
-        "Video",
-        back_populates="history",
+    suggested_offer = Column(
+        String,
+        nullable=False
     )
