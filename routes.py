@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
-from app.database import get_db
-from app.models import UserBehavior
-from app.schemas import UserBehaviorCreate, UserBehaviorResponse
+from database import get_db
+from models import UserBehavior
+from schemas import UserBehaviorCreate, UserBehaviorResponse
 
 
 # ==========================================================
@@ -23,24 +23,25 @@ router = APIRouter(
 
 def calculate_churn_risk(days_active: int, support_calls: int) -> tuple[str, str]:
     """
-    Calculate user churn risk and determine the best retention offer.
+    Calculate user churn risk and determine
+    the appropriate retention offer.
     """
 
     if days_active < 30 or support_calls > 4:
         return (
             "HIGH",
-            "50% Discount Coupon + 1 Month Free Premium"
+            "50% Discount Coupon + 1 Month Free Premium",
         )
 
-    if support_calls > 2:
+    elif support_calls > 2:
         return (
             "MEDIUM",
-            "Feature Guide Email + 10% Loyalty Bonus"
+            "Feature Guide Email + 10% Loyalty Bonus",
         )
 
     return (
         "LOW",
-        "Regular Feature Update Newsletter"
+        "Regular Feature Update Newsletter",
     )
 
 
@@ -51,25 +52,24 @@ def calculate_churn_risk(days_active: int, support_calls: int) -> tuple[str, str
 @router.post(
     "/analyze",
     response_model=UserBehaviorResponse,
-    status_code=status.HTTP_201_CREATED
+    status_code=status.HTTP_201_CREATED,
 )
 def analyze_user_behavior(
     payload: UserBehaviorCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
-    Analyze user behavior, calculate churn risk,
-    save the result to the database,
-    and return the stored record.
+    Analyze user behavior,
+    calculate churn risk,
+    store analytics in the database,
+    and return the saved record.
     """
 
-    # Calculate prediction
     churn_risk, suggested_offer = calculate_churn_risk(
         payload.days_active,
-        payload.support_calls
+        payload.support_calls,
     )
 
-    # Create database object
     db_user = UserBehavior(
         user_id=payload.user_id,
         days_active=payload.days_active,
@@ -91,38 +91,35 @@ def analyze_user_behavior(
 
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Database transaction failed."
+            detail="Database transaction failed.",
         )
 
 
 # ==========================================================
-# Get Analytics Logs
+# Analytics Logs
 # ==========================================================
 
 @router.get(
     "/logs",
     response_model=list[UserBehaviorResponse],
-    status_code=status.HTTP_200_OK
+    status_code=status.HTTP_200_OK,
 )
 def get_analytics_logs(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
-    Retrieve all user behavior analytics records.
-    Latest records are returned first.
+    Retrieve all stored analytics records.
     """
 
     try:
-        logs = (
+        return (
             db.query(UserBehavior)
             .order_by(UserBehavior.id.desc())
             .all()
         )
 
-        return logs
-
     except SQLAlchemyError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to fetch analytics logs."
+            detail="Failed to retrieve analytics logs.",
         )
