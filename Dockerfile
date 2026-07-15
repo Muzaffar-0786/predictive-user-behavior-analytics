@@ -13,13 +13,13 @@ WORKDIR /project
 
 
 # ==========================================================
-# Environment Variables
+# Python Environment Settings
 # ==========================================================
 
-# Prevent Python from generating .pyc files
+# Prevent Python from creating .pyc files
 ENV PYTHONDONTWRITEBYTECODE=1
 
-# Enable unbuffered logging
+# Enable immediate logging output
 ENV PYTHONUNBUFFERED=1
 
 
@@ -27,29 +27,29 @@ ENV PYTHONUNBUFFERED=1
 # Install Dependencies
 # ==========================================================
 
-# Copy requirements first for better Docker layer caching
+# Copy requirements first for better Docker cache usage
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --upgrade --no-cache-dir -r requirements.txt
+# Install project dependencies
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
 
 # ==========================================================
-# Copy Project Files
+# Copy Application Code
 # ==========================================================
 
 COPY . .
 
 
 # ==========================================================
-# Expose Application Port
+# Application Port
 # ==========================================================
 
 EXPOSE 8000
 
 
 # ==========================================================
-# Start FastAPI Application
+# Start FastAPI Server
 # ==========================================================
 
 CMD [
