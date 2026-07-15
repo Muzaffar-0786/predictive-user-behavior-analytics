@@ -1,14 +1,14 @@
 from fastapi import FastAPI, status
 
-from app.database import Base, engine
-from app.routes import router as analytics_router
+from database import Base, engine
+from routes import router as analytics_router
 
 
 # ==========================================================
 # Database Initialization
 # ==========================================================
 
-# Create all database tables automatically during application startup
+# Create all database tables during application startup
 Base.metadata.create_all(bind=engine)
 
 
@@ -40,12 +40,11 @@ app.include_router(analytics_router)
 @app.get(
     "/",
     tags=["Root"],
-    status_code=status.HTTP_200_OK
+    status_code=status.HTTP_200_OK,
 )
 def read_root():
     """
-    Root endpoint that provides basic information
-    about the API service.
+    Return basic information about the running API service.
     """
 
     return {
@@ -62,12 +61,12 @@ def read_root():
 @app.get(
     "/health",
     tags=["Root"],
-    status_code=status.HTTP_200_OK
+    status_code=status.HTTP_200_OK,
 )
 def health_check():
     """
-    Health check endpoint used by deployment
-    platforms to verify service availability.
+    Health check endpoint used by deployment platforms
+    to verify that the service is running correctly.
     """
 
     return {
